@@ -22,7 +22,11 @@ pureTests :: TestTree
 pureTests =
   testGroup
     "Pure interpreter"
-    []
+    [
+      testCase "Let" $
+        eval' (Let "x" (Add (CstInt 2) (CstInt 3)) (Var "x"))
+          @?= ValInt 5
+    ]
 
 ioTests :: TestTree
 ioTests =
