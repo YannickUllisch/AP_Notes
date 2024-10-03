@@ -152,20 +152,6 @@ monads.
 
 - `APL.InterpPure`: Complete the skeleton code for `runEval`.
 
-- `APL.Interp_Tests`: Add tests to `pureTests` to test your new effect.
-
-#### Hints
-
-Test your `Reader` effect by adding some tests to `pureTests` in
-`APL.Interp_Tests`. It is probably easiest to construct an `Exp` whose
-evaluation generates `Reader` effects, like `Let`-expressions:
-
-```hs
-testCase "Let" $
-  eval' (Let "x" (Add (CstInt 2) (CstInt 3)) (Var "x"))
-    @?= ValInt 5,
-```
-
 #### Solution 
 
 <details>
@@ -235,7 +221,7 @@ runEval' :: Env -> State -> EvalM a -> a
 
 ```Haskell
 -- APL.Monad:
-instance Functor (EvalOp r s) where
+instance Functor EvalOp where
   fmap f (ReadOp k) = ReadOp $ f . k
   fmap f (StateGetOp k) = StateGetOp $ f . k
   fmap f (StatePutOp s m) = StatePutOp s $ f m
@@ -303,14 +289,21 @@ modifyEffects g (Free e) = ...
   probably a good idea, but you can also test interfaces
   directly:
   
-  ```hs
-  testCase "localEnv" $
-    runEval
-      ( localEnv (const [("x", ValInt 1)]) $
-               askEnv
-    )
-      @?= [("x", ValInt 1)]
-  ```
+```hs
+testCase "Let" $
+  eval' (Let "x" (Add (CstInt 2) (CstInt 3)) (Var "x"))
+    @?= ValInt 5,
+```
+
+
+```hs
+testCase "localEnv" $
+  runEval
+    ( localEnv (const [("x", ValInt 1)]) $
+             askEnv
+  )
+    @?= [("x", ValInt 1)]
+```
 
 #### Hints
 
@@ -489,7 +482,10 @@ instance Functor EvalOp where
 
 failure :: String -> EvalM a
 failure = Free . ErrorOp
+```
 
+```Haskell
+-- APL.InterpPure:
 runEval :: EvalM a -> ([String], Either Error a)
 runEval = runEval' envEmpty stateInitial
   where
@@ -502,10 +498,6 @@ runEval = runEval' envEmpty stateInitial
       let (ps, res) = runEval' r s m
        in (p : ps, res)
     runEval' _ _ (Free (ErrorOp e)) = ([], Left e)
-```
-
-`APL.InterpPure`:
-```Haskell
 ```
 
 </details>
